@@ -1,3 +1,7 @@
+"""
+Created on 2024.3.22
+获取雪球论坛指定个股下的讨论内容
+"""
 import requests
 
 
