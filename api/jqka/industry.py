@@ -4,6 +4,7 @@ Created on 2024.3.24
 """
 import requests
 import pandas as pd
+import datetime
 
 headers = {
     "Host": "dq.10jqka.com.cn",
@@ -145,3 +146,22 @@ def get_ind_list(date):
                     data = response.json()['data']['list']
                     all_data += data
             return all_data
+
+
+def ind_index_data(ind_code):
+    """
+    获取一个板块的指数k线
+    :param ind_code: 板块代码
+    :return: pandas DataFrame
+    """
+    url = f'https://dq.10jqka.com.cn/interval_calculation/block_info/v1/get_latest_k_line?block_code={ind_code}&block_market=48'
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        print(response.status_code, '请求失败！')
+    else:
+        data = response.json()['data']['data_list']
+        data = pd.DataFrame(data)
+        data['date'] = data['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d%H%M%S'))
+        del data['yesterday_close_price']
+        data.rename(columns={'high_price': 'high', 'low_price': 'low', 'open_price': 'open', 'close_price': 'close'}, inplace=True)
+        return data
