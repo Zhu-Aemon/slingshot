@@ -126,7 +126,6 @@ def xq_discussion(symbol, page=1, count=20, comment=0, hl=0, source='all', sort=
         return {"error": "Failed to fetch data", "status_code": response.status_code}
     # 开始提取数据
     data = response.json()
-    print(data)
     total_count = data['count']
     posts = data['list']
     posts = [decompose_posts(x) for x in posts]

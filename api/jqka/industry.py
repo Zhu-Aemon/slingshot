@@ -55,6 +55,9 @@ def ind_stock_list(ind_code, date):
         total = response.json()['data']['total']
         if total < 20:
             data = pd.DataFrame(data)
+            data.rename(columns={'turnover': 'amount', 'stock_code': 'ticker', 'stock_name': 'name',
+                                 'margin_of_increase': 'pct_change', 'net_inflow_of_main_force': 'nf_main',
+                                 'turnover_rate': 'tovr'}, inplace=True)
             return data
         else:
             all_data = data.copy()
@@ -84,6 +87,9 @@ def ind_stock_list(ind_code, date):
                     data = response.json()['data']['list']
                     all_data += data
             data = pd.DataFrame(all_data)
+            data.rename(columns={'turnover': 'amount', 'stock_code': 'ticker', 'stock_name': 'name',
+                                 'margin_of_increase': 'pct_change', 'net_inflow_of_main_force': 'nf_main',
+                                 'turnover_rate': 'tovr'}, inplace=True)
             return data
 
 
@@ -91,7 +97,7 @@ def get_ind_list(date):
     """
     获取指定日期的板块涨跌情况
     :param date: 指定日期，请传入字符串，例如20240322
-    :return: python dict
+    :return: pandas DataFrame
     """
     url = 'https://dq.10jqka.com.cn/interval_calculation/block_info/v1/get_block_list'
     payload = {
@@ -118,6 +124,10 @@ def get_ind_list(date):
         data = response.json()['data']['list']
         total = response.json()['data']['total']
         if total < 20:
+            data = pd.DataFrame(data)
+            data.rename(columns={'turnover': 'amount', 'block_name': 'ind_name', 'margin_of_increase': 'pct_change',
+                                 'net_inflow_of_main_force': 'nf_main'}, inplace=True)
+            data.drop(columns=['stock_list'], inplace=True)
             return data
         else:
             all_data = data.copy()
@@ -145,7 +155,11 @@ def get_ind_list(date):
                 else:
                     data = response.json()['data']['list']
                     all_data += data
-            return all_data
+            data = pd.DataFrame(all_data)
+            data.rename(columns={'turnover': 'amount', 'block_name': 'ind_name', 'margin_of_increase': 'pct_change',
+                                 'net_inflow_of_main_force': 'nf_main'}, inplace=True)
+            data.drop(columns=['stock_list'], inplace=True)
+            return data
 
 
 def ind_index_data(ind_code):
