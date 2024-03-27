@@ -13,9 +13,9 @@ headers = {
     }
 
 
-def xq_k_min(symbol):
+def xq_intraday(symbol):
     """
-    获取雪球分钟级别k线，注意只可获取最近的一个交易日的！
+    获取雪球分时数据，注意只可获取最近的一个交易日的！
     :param symbol: A股带交易所标识符，美股直接ticker
     :return: 当天的1min k线数据
     """
