@@ -39,10 +39,10 @@ def xq_intraday(symbol, period='5d'):
     data.rename(columns={'current': 'close', 'avg_price': 'avgp', 'timestamp': 'time'}, inplace=True)
     # data['time'] = data['time'].apply(datetime.datetime.utcfromtimestamp)
     if data.loc[1, 'capital']:
-        data['caps'] = data['capital'].apply(lambda x: x['small'])
-        data['capm'] = data['capital'].apply(lambda x: x['medium'])
-        data['capl'] = data['capital'].apply(lambda x: x['large'])
-        data['capxl'] = data['capital'].apply(lambda x: x['xlarge'])
+        data['caps'] = data['capital'].apply(lambda x: x['small'] if x else 0)
+        data['capm'] = data['capital'].apply(lambda x: x['medium'] if x else 0)
+        data['capl'] = data['capital'].apply(lambda x: x['large'] if x else 0)
+        data['capxl'] = data['capital'].apply(lambda x: x['xlarge'] if x else 0)
     data.drop(columns=['macd', 'kdj', 'ratio', 'capital', 'volume_compare'], inplace=True)
     return data
 
