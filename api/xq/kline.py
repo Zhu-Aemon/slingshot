@@ -13,10 +13,11 @@ headers = {
     }
 
 
-def xq_intraday(symbol):
+def xq_intraday(symbol, period='5d'):
     """
-    获取雪球分时数据，注意只可获取最近的一个交易日的！
+    获取雪球分时数据，注意只可获取最近的一个或者五个交易日的！
     :param symbol: A股带交易所标识符，美股直接ticker
+    :param period: 1d - 最近一天，5d - 最近五天
     :return: 当天的1min k线数据
     """
     url = 'https://stock.xueqiu.com/v5/stock/chart/minute.json'
@@ -27,7 +28,7 @@ def xq_intraday(symbol):
             symbol = 'SZ' + symbol
     params = {
         "symbol": symbol,
-        "period": "1d"
+        "period": period
     }
     response = requests.get(url, params=params, headers=headers)
     if response.status_code != 200:
@@ -99,4 +100,41 @@ def xq_snapshot(symbol):
                  'sp2', 'sc2', 'sp3', 'sc3', 'sp4', 'sc4', 'sp5', 'sc5', 'buypct', 'sellpct', 'diff']]
     data.rename(columns={'timestamp': 'time', 'bc1': 'bv1', 'bc2': 'bv2', 'bc3': 'bv3', 'bc4': 'bv4', 'bc5': 'bv5',
                          'sc1': 'sv1', 'sc2': 'sv2', 'sc3': 'sv3', 'sc4': 'sv4', 'sc5': 'sv5'}, inplace=True)
+    return data
+
+
+def xq_kline(symbol, period, begin, count=200):
+    """
+    获取雪球上的分钟级别k线数据，还没搞明白这个begin究竟该咋设置
+    :param symbol: A股带交易所标识符
+    :param period: 1m - 分钟, 5m, 15m, 30m, 60m, 120m, year, quarter, month, day
+    :param begin: 开始的时间戳
+    :param count: k线根数
+    :return: pandas DataFrame
+    """
+    if len(symbol) == 6:
+        if symbol.startswith('6'):
+            symbol = 'SH' + symbol
+        else:
+            symbol = 'SZ' + symbol
+    params = {
+        "symbol": symbol,
+    }
+    url = f'https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol=SH603721&begin=1711419000000&period=1m&type=before&count=-142&indicator=kline'
+    params = {
+        "symbol": symbol,
+        "begin": begin,
+        "period": period,
+        "type": "before",
+        "count": -count,
+        "indicator": "kline",
+    }
+    response = requests.get(url=url, params=params, headers=headers)
+    if response.status_code != 200:
+        print(response.status_code, '请求失败！', response.text)
+        return pd.DataFrame()
+    data = response.json()['data']
+    data = pd.DataFrame(data['item'], columns=data['column'])
+    data.rename(columns={'timestamp': 'time', 'turnoverrate': 'tovr'}, inplace=True)
+    data.drop(columns=['volume_post', 'amount_post'], inplace=True)
     return data
