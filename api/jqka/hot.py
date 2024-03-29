@@ -43,9 +43,9 @@ def get_hot_intraday(date):
                 "time": datetime.strptime(stock["time"], '%Y%m%d%H%M'),
                 "rate": float(stock["rate"]),
                 "market": stock["market"],
-                "block": stock["tag"]["concept_tag"][0],
-                "ind_code": stock["tag"]["concept_tag"][1],
-                "ind_name": stock["tag"]["concept_tag"][2]
+                "block": stock["tag"]["concept_tag"][0]  if 'tag' in stock.keys() else '',
+                "ind_code": stock["tag"]["concept_tag"][1] if 'tag' in stock.keys() else '',
+                "ind_name": stock["tag"]["concept_tag"][2] if 'tag' in stock.keys() else ''
             }
             for date, stocks in data.items()
             for stock in stocks
