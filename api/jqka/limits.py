@@ -24,7 +24,7 @@ headers = {
 }
 
 
-def daily_limits(date):
+def daily_limits(date='20240322'):
     """
     每天涨停股票的信息
     :param date: 日期字符串，例如20240322
@@ -108,4 +108,42 @@ def daily_limits(date):
         res.append(pd.DataFrame(info))
     res = pd.concat(res)
     res.reset_index(inplace=True, drop=True)
+    return res
+
+
+def daily_limits_hot(date='20240322'):
+    """
+    获取按照板块热度排列的涨停板信息
+    :param date: 日期字符串，例如20240322
+    :return: pandas DataFrame
+    """
+    url = 'https://data.10jqka.com.cn/dataapi/limit_up/block_top'
+    params = {
+        "date": date,
+        "filter": "HS,GEM2STAR"
+    }
+    response = requests.get(url, params=params, headers=headers)
+    if response.status_code != 200:
+        print(f'{response.text}，请求失败！')
+        return pd.DataFrame()
+    data = response.json()['data']
+    records = [{
+        'ind_code': x['code'],
+        'ind_name': x['name'],
+        'ind_change': x['change'],
+        'ulim_num': x['limit_up_num'],
+        'cont_num': x['continuous_plate_num'],
+        'ind_height': x['high'],
+        'ind_listed_days': x['days'],
+        'code': s['code'],
+        'name': s['name'],
+        'price': s['latest'],
+        'tflim': s['first_limit_up_time'],
+        'tllim': s['last_limit_up_time'],
+        'change': s['change_rate'],
+        'height': s['high'],
+        'reason': s['reason_type'],
+        'details': s['reason_info'],
+    } for x in data for s in x['stock_list']]
+    res = pd.DataFrame(records)
     return res
