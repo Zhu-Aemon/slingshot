@@ -11,6 +11,7 @@ def trading_days(start_date='20190101'):
     :param start_date: 从哪一天开始算
     :return: list[str]
     """
+    # noinspection HttpUrlsUsage
     url = f'http://dsfwt.10jqka.com.cn/bidding/api/tradingday/startdate/{start_date}'
     # noinspection SpellCheckingInspection,HttpUrlsUsage
     headers = {
