@@ -6,6 +6,7 @@ Created on 2024.3.27
 import requests
 import pandas as pd
 import datetime
+import time
 
 headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
@@ -103,12 +104,12 @@ def xq_snapshot(symbol):
     return data
 
 
-def xq_kline(symbol, period, begin, count=200):
+def xq_kline(symbol, period, begin=int(time.time() * 1000), count=200):
     """
     获取雪球上的分钟级别k线数据，还没搞明白这个begin究竟该咋设置
     :param symbol: A股带交易所标识符
     :param period: 1m - 分钟, 5m, 15m, 30m, 60m, 120m, year, quarter, month, day
-    :param begin: 开始的时间戳
+    :param begin: 开始的时间戳，貌似是当前时间戳！
     :param count: k线根数
     :return: pandas DataFrame
     """
@@ -120,7 +121,7 @@ def xq_kline(symbol, period, begin, count=200):
     params = {
         "symbol": symbol,
     }
-    url = f'https://stock.xueqiu.com/v5/stock/chart/kline.json?symbol=SH603721&begin=1711419000000&period=1m&type=before&count=-142&indicator=kline'
+    url = f'https://stock.xueqiu.com/v5/stock/chart/kline.json'
     params = {
         "symbol": symbol,
         "begin": begin,
