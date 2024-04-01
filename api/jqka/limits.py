@@ -132,7 +132,7 @@ def daily_limits_hot(date='20240322'):
         'ind_name': x['name'],
         'ind_change': x['change'],
         'ulim_num': x['limit_up_num'],
-        'cont_num': x['continuous_plate_num'],
+        'cont_num': x['continuous_plate_num'],  # 连板家数
         'ind_height': x['high'],
         'ind_listed_days': x['days'],
         'code': s['code'],
@@ -145,5 +145,30 @@ def daily_limits_hot(date='20240322'):
         'reason': s['reason_type'],
         'details': s['reason_info'],
     } for x in data for s in x['stock_list']]
+    res = pd.DataFrame(records)
+    return res
+
+
+def daily_cont(date='20240322'):
+    """
+    获取每天连板的股票，20230320开始
+    :param date: 日期字符串，例如20240322
+    :return: pandas DataFrame
+    """
+    url = 'https://data.10jqka.com.cn/dataapi/limit_up/continuous_limit_up'
+    params = {
+        'filter': 'HS,GEM2STAR',
+        "date": date
+    }
+    response = requests.get(url, params=params, headers=headers)
+    if response.status_code != 200:
+        print(f'{response.text}，请求失败！')
+        return pd.DataFrame()
+    data = response.json()['data']
+    records = [{
+        'height': x['height'],
+        'code': s['code'],
+        'name': s['name']
+    } for x in data for s in x['code_list']]
     res = pd.DataFrame(records)
     return res
