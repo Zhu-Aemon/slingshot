@@ -18,3 +18,8 @@
 - `api.xq.kline.xq_intraday`：雪球上获取的某只股票最近的分时数据
 - `api.xq.kline.xq_trades`：雪球上获取的某只股票最近的成交明细
 - `api.xq.kline.xq_snapshot`：雪球上获取的某只股票最近的盘口快照
+- ...待更新
+
+### Todo：
+
+1. 添加本地化的数据存储方案
