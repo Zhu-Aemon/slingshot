@@ -3,8 +3,10 @@ import sqlite3
 
 import pandas as pd
 
-from api.em.calendar import trading_days
-from errors.ParamsError import ParamsError
+from tqdm import tqdm
+
+from slingshot.api.em.calendar import trading_days
+from slingshot.errors.ParamsError import ParamsError
 
 
 class BasicStorage:
@@ -73,7 +75,6 @@ class BasicStorage:
                 latest_date = max(table_dates)
             except (ValueError, sqlite3.OperationalError):
                 latest_date = None
-        print(latest_date.date(), datetime.datetime.now().date())
         if latest_date:
             self.update_date_range = trading_days(
                 start_date=datetime.datetime.strftime(latest_date + datetime.timedelta(days=1), '%Y%m%d'))
@@ -85,11 +86,8 @@ class BasicStorage:
             self.update_date_range = trading_days('20150101')
             self.update_date_range = [x for x in self.update_date_range if
                                       datetime.datetime.strptime(x, '%Y%m%d').date() <= datetime.datetime.now().date()]
-        if (not latest_date) and (
-                datetime.datetime.now().date() == datetime.datetime.strptime(self.update_date_range[-1],
-                                                                             '%Y%m%d').date()
-                and datetime.datetime.now().hour <= 15):
-            self.update_date_range.pop(0)
+        if (datetime.datetime.now().date() == datetime.datetime.strptime(self.update_date_range[-1], '%Y%m%d').date()) and (datetime.datetime.now().hour <= 15):
+            self.update_date_range.pop()
 
     def _adjust_date_range(self):
         adjusted_range = [datetime.datetime.strptime(x, '%Y%m%d') for x in self.update_date_range]
@@ -99,6 +97,8 @@ class BasicStorage:
             valid_start_date = datetime.datetime(2023, 3, 20)
         elif self.api.__name__ in ['breadth_intraday']:
             valid_start_date = datetime.datetime(2023, 1, 3)
+        elif self.api.__name__ in ['get_ind_list', 'ind_stock_list']:
+            valid_start_date = datetime.datetime(2023, 8, 22)
         else:
             return
         self.update_date_range = [
@@ -111,7 +111,7 @@ class BasicStorage:
 
     def _storage_daily(self):
         if self.mode == 'detail':
-            for date in self.update_date_range:
+            for date in tqdm(self.update_date_range):
                 try:
                     data_iter = self.api(date=date)
                     data_iter.to_sql(name=f'T{date}', con=self.conn, if_exists='replace', index=False)
@@ -119,11 +119,14 @@ class BasicStorage:
                     print(f'[{date}] KeyError: {e}')
         elif self.mode == 'compact':
             result = []
-            for date in self.update_date_range:
+            for date in tqdm(self.update_date_range):
                 try:
                     data_iter = self.api(date=date)
                     result.append(data_iter)
                 except KeyError as e:
                     print(f'[{date}] KeyError: {e}')
-            result = pd.concat(result)
+            try:
+                result = pd.concat(result)
+            except ValueError:
+                return
             result.to_sql(con=self.conn, name='compact', if_exists='append', index=False)
