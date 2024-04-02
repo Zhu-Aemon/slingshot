@@ -1,4 +1,4 @@
-/ind_data.db
+/database/get_ind_list.db
 .DS_Store
 *__pycache__*
 .idea

@@ -171,4 +171,5 @@ def daily_cont(date='20240322'):
         'name': s['name']
     } for x in data for s in x['code_list']]
     res = pd.DataFrame(records)
+    res['date'] = datetime.strptime(date, '%Y%m%d')
     return res
