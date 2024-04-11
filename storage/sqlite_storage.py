@@ -111,6 +111,8 @@ class BasicStorage:
 
     def _storage_daily(self):
         if self.mode == 'detail':
+            if self.api.__name__ == 'ind_stock_list':
+                self._ind_stock_list_wrapper()
             for date in tqdm(self.update_date_range):
                 try:
                     data_iter = self.api(date=date)
@@ -118,6 +120,8 @@ class BasicStorage:
                 except KeyError as e:
                     print(f'[{date}] KeyError: {e}')
         elif self.mode == 'compact':
+            if self.api.__name__ == 'ind_index_data':
+                self._ind_index_data_wrapper()
             result = []
             for date in tqdm(self.update_date_range):
                 try:
@@ -130,3 +134,21 @@ class BasicStorage:
             except ValueError:
                 return
             result.to_sql(con=self.conn, name='compact', if_exists='append', index=False)
+
+    def _ind_stock_list_wrapper(self):
+        ind_list_db = self.db_path.replace(self.api.__name__, 'get_ind_list')
+        ind_list_conn = sqlite3.connect(ind_list_db)
+        ind_list_tables = [x[0] for x in ind_list_conn.cursor().execute(
+            "SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
+        ind_list = pd.read_sql_table(table_name=ind_list_tables[-1], con=ind_list_conn)
+        ind_list = list(ind_list['block_code'])
+        for code in ind_list:
+            for date in tqdm(self.update_date_range):
+                try:
+                    data_iter = self.api(ind_code=code, date=date)
+                    data_iter.to_sql(con=self.conn, name=f'T{date}', if_exists='append', index=False)
+                except KeyError as e:
+                    print(f'[{date}, {code}] KeyError: {e}')
+
+    def _ind_index_data_wrapper(self):
+        pass
