@@ -4,6 +4,7 @@ import re
 import pandas as pd
 import sqlite3
 from collections import defaultdict
+import datetime
 
 
 # noinspection SpellCheckingInspection
@@ -14,7 +15,7 @@ def get_econ_data(countries: list[str] = ['US', 'CN', 'EU', 'JP', 'DE', 'GB', 'F
 
     def on_message(ws, message):
         nonlocal result
-        messages = re.split(r'~m~\d{1,4}~m~', message)[1:]
+        messages = re.split(r'~m~\d{1,7}~m~', message)[1:]
 
         def cum_data(res_iter):
             nonlocal result
@@ -42,7 +43,7 @@ def get_econ_data(countries: list[str] = ['US', 'CN', 'EU', 'JP', 'DE', 'GB', 'F
         for message_iter in messages:
             cum_data(message_iter)
         messages = pd.DataFrame({k: dict(v) for k, v in dict(result).items()}).T
-        messages.dropna(inplace=True, subset=['field'])
+        messages.dropna(inplace=True, how='any', subset=['field'])
         if len(messages) == len(all_indicators):
             messages.to_sql(con=sqlite3.connect('econ_live.db'), if_exists='replace', index=False, name='live')
             ws.close()
@@ -66,8 +67,9 @@ def get_econ_data(countries: list[str] = ['US', 'CN', 'EU', 'JP', 'DE', 'GB', 'F
             ws.send(msg)
 
     websocket.enableTrace(False)
+    today = datetime.datetime.now()
     ws_instance = websocket.WebSocketApp(
-        "wss://data.tradingview.com/socket.io/websocket?from=markets%2Fworld-economy%2F&date=2024_04_12-11_22",
+        f"wss://data.tradingview.com/socket.io/websocket?from=markets%2Fworld-economy%2F&date={today.strftime('%Y_%m_%d')}-11_22",
         on_message=on_message, on_open=on_open)
     ws_instance.run_forever()
 
