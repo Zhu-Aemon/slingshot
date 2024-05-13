@@ -152,6 +152,7 @@ def daily_limits_hot(date='20240322'):
 def daily_cont(date='20240322'):
     """
     获取每天连板的股票，20230320开始
+    2014.5.12注：可以获取的开始时间一直在发生变化！
     :param date: 日期字符串，例如20240322
     :return: pandas DataFrame
     """
