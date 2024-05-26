@@ -1,5 +1,7 @@
 # Slingshot
 
+PS：由于个人事务原因预计会停止更新一段时间，8月后应该可以恢复更新
+
 `Slingshot`项目是对`akshare`项目的一个拓展，对`akshare`没有实现的一些API进行了实现
 
 `Slignshot`关注的API主要集中于板块轮动、概念、打板和行为金融学
