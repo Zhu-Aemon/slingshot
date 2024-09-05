@@ -10,7 +10,7 @@ import time
 
 headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        "Cookie": "xqat=7fc2327840747ab06b8128801773a1817b427102"
+        "Cookie": "xqat=483932c5fb313ca4c93e7165a31f179fb71e1804"
     }
 
 
@@ -104,7 +104,7 @@ def xq_snapshot(symbol):
     return data
 
 
-def xq_kline(symbol, period, begin=int(time.time() * 1000), count=200):
+def xq_kline(symbol, period='day', begin=int(time.time() * 1000), count=200):
     """
     获取雪球上的分钟级别k线数据，还没搞明白这个begin究竟该咋设置
     :param symbol: A股带交易所标识符
