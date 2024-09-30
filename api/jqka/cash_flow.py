@@ -45,9 +45,10 @@ def hshkconnect_net_buy(date="2024-09-23", direction="south", page_index=1, prox
     if proxy == 'n':
         response = requests.get(url, headers=headers, params=params)
     else:
+        # 这里假设proxy为http_proxy
         proxies = {
             'http': 'http://' + proxy,
-            'https': 'https://' + proxy
+            'https': 'http://' + proxy
         }
         response = requests.get(url, headers=headers, params=params, proxies=proxies)
 
