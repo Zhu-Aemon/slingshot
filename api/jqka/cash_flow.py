@@ -79,4 +79,3 @@ def hshkconnect_net_buy(date="2024-09-23", direction="south", page_index=1, prox
         return final_data
     else:
         print(response.text)
-        return pd.DataFrame()
