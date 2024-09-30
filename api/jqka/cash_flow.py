@@ -7,12 +7,13 @@ import requests
 import pandas as pd
 
 
-def hshkconnect_net_buy(date="2024-09-23", direction="south", page_index=1) -> pd.DataFrame:
+def hshkconnect_net_buy(date="2024-09-23", direction="south", page_index=1, proxy='n') -> pd.DataFrame:
     """
     获取沪深港通净买入数据，截止2024年9月是有544只港股通标的，注意page_index
     :param date: 格式yy-mm-dd，例如2024-09-23
     :param direction: 南向资金 - south; 北向资金 - north
     :param page_index: 第几页
+    :param proxy: 所使用的代理，如果不特定指定的话那就默认没有，只需要写例如10.10.1.10:3128就可以
     :return:
     """
     url = "https://apigate.10jqka.com.cn/d/hq/hshkconnect/stock/net_buy_list/get_list"
@@ -41,7 +42,14 @@ def hshkconnect_net_buy(date="2024-09-23", direction="south", page_index=1) -> p
         "Origin": "https://eq.10jqka.com.cn"
     }
     # Send the GET request
-    response = requests.get(url, headers=headers, params=params)
+    if proxy == 'n':
+        response = requests.get(url, headers=headers, params=params)
+    else:
+        proxies = {
+            'http': 'http://' + proxy,
+            'https': 'https://' + proxy
+        }
+        response = requests.get(url, headers=headers, params=params, proxies=proxies)
 
     if response.status_code == 200:
         data = response.json()['data']
