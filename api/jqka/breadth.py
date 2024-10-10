@@ -12,7 +12,7 @@ headers = {
     'Accept-Language': 'en-US,en;q=0.9',
     'Cache-Control': 'max-age=0',
     'Connection': 'keep-alive',
-    'Cookie': 'u_ukey=A10702B8689642C6BE607730E11E6E4A; u_uver=1.0.0; u_dpass=6%2BTqQGEKG%2BPv3BSM3kOI%2FjtILN2WvyxW%2FwlSPrUGZG0BszpJKKhuFQOU2Yd1kWol%2FsBAGfA5tlbuzYBqqcUNFA%3D%3D; u_did=D0741417FFF64A309544C3BE5696BBBC; u_ttype=WEB; v=A681XsHsFSfTmhEb2vOCx4DEOMi8VAN2nagHasE8S54lEMF2ySSTxq14l7vS',
+    # 'Cookie': 'u_ukey=A10702B8689642C6BE607730E11E6E4A; u_uver=1.0.0; u_dpass=6%2BTqQGEKG%2BPv3BSM3kOI%2FjtILN2WvyxW%2FwlSPrUGZG0BszpJKKhuFQOU2Yd1kWol%2FsBAGfA5tlbuzYBqqcUNFA%3D%3D; u_did=D0741417FFF64A309544C3BE5696BBBC; u_ttype=WEB; v=A681XsHsFSfTmhEb2vOCx4DEOMi8VAN2nagHasE8S54lEMF2ySSTxq14l7vS',
     'DNT': '1',
     'Host': 'eq.10jqka.com.cn',
     'Sec-Fetch-Dest': 'document',
@@ -63,7 +63,7 @@ def breadth_live():
 
 def breadth_intraday(date='20240329', level=11):
     """
-    获取历史分时日内市场宽度信息
+    获取历史分时日内市场宽度信息，2023年开始有数据
     :param date: 例如20240329
     :param level: 分多少层，默认11，可选23
     :return: pandas DataFrame
