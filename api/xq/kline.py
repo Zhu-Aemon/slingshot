@@ -10,7 +10,7 @@ import time
 
 headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        "Cookie": "xqat=483932c5fb313ca4c93e7165a31f179fb71e1804"
+        "Cookie": "xqat=dbc1dc6d13bd101dd06f18c5b7f2fb2eb276fb5a; u=441712662116690"
     }
 
 
@@ -118,9 +118,6 @@ def xq_kline(symbol, period='day', begin=int(time.time() * 1000), count=200):
             symbol = 'SH' + symbol
         else:
             symbol = 'SZ' + symbol
-    params = {
-        "symbol": symbol,
-    }
     url = f'https://stock.xueqiu.com/v5/stock/chart/kline.json'
     params = {
         "symbol": symbol,
