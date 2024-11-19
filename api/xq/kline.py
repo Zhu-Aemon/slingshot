@@ -9,9 +9,23 @@ import datetime
 import time
 
 headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        "Cookie": "xqat=dbc1dc6d13bd101dd06f18c5b7f2fb2eb276fb5a; u=441712662116690"
-    }
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+    "Cookie": "xqat=691d6f0a678b98a172affb89759b9c46fd23b4e2; u=171732008163910"
+}
+
+
+# def get_new_cookie():
+#     """
+#     说明：雪球的xqat和u的值为请求的时候必须携带的参数，但是这个参数很容易过期，那这个时候我们可以在每次请求前都获取一个新的cookie
+#     :return: None
+#     """
+#     res = requests.get('https://xueqiu.com/', headers=headers)
+#     xqat = res.cookies.get('xqat')
+#     u = res.cookies.get('u')
+#     headers.update({'Cookie': f"xqat={xqat}; u={u}"})
+#
+#
+# get_new_cookie()
 
 
 def xq_intraday(symbol, period='5d'):
