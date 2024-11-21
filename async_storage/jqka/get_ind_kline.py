@@ -150,6 +150,7 @@ async def get_ind_list_all(date, session, proxy, lock):
     return data, proxy
 
 
+# noinspection SqlResolve,SqlNoDataSourceInspection
 async def ind_index_data(ind_code, session, proxy, lock):
     """
     获取一个板块的指数k线，获取全部k线
@@ -181,9 +182,8 @@ async def ind_index_data(ind_code, session, proxy, lock):
     }
     url = f'https://d.10jqka.com.cn/v6/line/bk_{ind_code}/01/all.js'
     try:
-        async with session.get(url, headers=headers, proxy=f'http://{proxy}', timeout=10, ssl=False, cookies=cookies_pc) as response:
+        async with session.get(url, headers=headers_pc, proxy=f'http://{proxy}', timeout=10, ssl=False, cookies=cookies_pc) as response:
             data = await response.text()
-            # print(data.lstrip(f'quotebridge_v6_line_bk_{ind_code}_01_all(').rstrip(')'))
             data = json.loads(data.lstrip(f'quotebridge_v6_line_bk_{ind_code}_01_all(').rstrip(')'))
             del data['afterVolumn']
             price = data['price'].split(',')
@@ -196,10 +196,11 @@ async def ind_index_data(ind_code, session, proxy, lock):
             dates = data['dates'].split(',')
             dates = [year[i] + dates[i] for i in range(len(dates))]
             data = pd.DataFrame(price, columns=['low', 'open', 'high', 'close'])
-            data['date'] = dates
-            data['date'] = data['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d'))
+            data['time'] = dates
+            data['time'] = data['time'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d'))
             data['volume'] = volume
-            data = data[['date', 'open', 'low', 'high', 'close', 'volume']]
+            data['ind_code'] = ind_code
+            data = data[['time', 'ind_code', 'open', 'low', 'high', 'close', 'volume']]
     except (asyncio.TimeoutError, aiohttp.ClientConnectionError, aiohttp.client_exceptions.ClientProxyConnectionError,
             aiohttp.client_exceptions.ClientHttpProxyError, aiohttp.http_exceptions.TransferEncodingError,
             aiohttp.client_exceptions.ClientPayloadError, JSONDecodeError):
@@ -213,25 +214,19 @@ async def ind_index_data(ind_code, session, proxy, lock):
             db = database(db_path)
         }}
 
-        if (not existsTable(db_path, 'I{ind_code}')) {{
-            stkList = db.createTable(
-                table(1000:0, `time`open`high`low`close`volume, [DATE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, LONG]),
-                `I{ind_code}
+        if (not existsTable(db_path, 'dailyK')) {{
+            stkList = createPartitionedTable(dbHandle=db,
+                table=table(1000:0, `time`ticker`open`high`low`close`volume, [DATE, SYMBOL, DOUBLE, DOUBLE, DOUBLE, DOUBLE, LONG]),
+                tableName=`dailyK, partitionColumns=`time
             )
         }} else {{
-            stkList = loadTable(db_path, 'I{ind_code}')
+            stkList = loadTable(db_path, 'dailyK')
         }}
     """)
     ddb_session.upload({'tmp_table': data})
-    record_count = ddb_session.run('select count(*) from stkList')
-    if record_count.values[0][0] == 0:
-        ddb_session.run("""
-            tableInsert(stkList, tmp_table)
-        """)
-    else:
-        ddb_session.run("""
-            upsert!(stkList, tmp_table, , `time)
-        """)
+    ddb_session.run("""
+        tableInsert(stkList, tmp_table)
+    """)
     return proxy
 
 
