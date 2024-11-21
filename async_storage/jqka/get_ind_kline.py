@@ -11,13 +11,17 @@ import sys
 import json
 
 import pandas as pd
+import numpy as np
 import dolphindb as ddb
 
 from settings import *
 from api.em.calendar import trading_days
+from api.jqka.get_pc_cookie import get_cookie_pc
+
 from tqdm import tqdm
 from json import JSONDecodeError
 from collections import deque
+from itertools import chain
 
 concurrency = 10
 proxy_get_count = 0
@@ -115,7 +119,7 @@ async def fetch_ind_list(date, page, session, proxy, lock):
             return data, proxy
     except (asyncio.TimeoutError, aiohttp.ClientConnectionError, aiohttp.client_exceptions.ClientProxyConnectionError,
             aiohttp.client_exceptions.ClientHttpProxyError, aiohttp.http_exceptions.TransferEncodingError, aiohttp.client_exceptions.ClientPayloadError):
-        proxy = get_proxy(lock)
+        proxy = await get_proxy(lock)
         return await fetch_ind_list(date, page, session, proxy, lock)
 
 
@@ -148,27 +152,59 @@ async def get_ind_list_all(date, session, proxy, lock):
 
 async def ind_index_data(ind_code, session, proxy, lock):
     """
-    获取一个板块的指数k线
+    获取一个板块的指数k线，获取全部k线
     :param ind_code: 板块代码
     :param session: aiohttp.Session
     :param proxy: 格式如xx.xx.xx.xx:xx，字符串
     :param lock: asyncio.Lock
     :return: pandas DataFrame
     """
-    url = f'https://dq.10jqka.com.cn/interval_calculation/block_info/v1/get_latest_k_line?block_code={ind_code}&block_market=48'
+    # noinspection SpellCheckingInspection
+    cookies_pc = {
+        'historystock': ind_code,
+        'spversion': '20130314',
+        'v': get_cookie_pc(),
+    }
+    headers_pc = {
+        'Accept': '*/*',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Connection': 'keep-alive',
+        'DNT': '1',
+        'Referer': 'https://stockpage.10jqka.com.cn/',
+        'Sec-Fetch-Dest': 'script',
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'same-site',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'sec-ch-ua': '"Chromium";v="131", "Not_A Brand";v="24"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+    }
+    url = f'https://d.10jqka.com.cn/v6/line/bk_{ind_code}/01/all.js'
     try:
-        async with session.get(url, headers=headers, proxy=f'http://{proxy}', timeout=10, ssl=False) as response:
-            text = await response.text()
-            data = json.loads(text)['data']['data_list']
+        async with session.get(url, headers=headers, proxy=f'http://{proxy}', timeout=10, ssl=False, cookies=cookies_pc) as response:
+            data = await response.text()
+            # print(data.lstrip(f'quotebridge_v6_line_bk_{ind_code}_01_all(').rstrip(')'))
+            data = json.loads(data.lstrip(f'quotebridge_v6_line_bk_{ind_code}_01_all(').rstrip(')'))
+            del data['afterVolumn']
+            price = data['price'].split(',')
+            price = [price[i * 4: (i + 1) * 4] for i in range(len(price) // 4)]
+            price = np.array([[int(x[0]), int(x[0]) + int(x[1]), int(x[0]) + int(x[2]), int(x[0]) + int(x[3])] for x in price]) / data['priceFactor']  # 最低价，开盘价，最高价，收盘价
+            volume = [int(x) for x in data['volumn'].split(',')]
+            year = data['sortYear']
+            year = [[str(x[0])] * x[1] for x in year]
+            year = list(chain.from_iterable(year))
+            dates = data['dates'].split(',')
+            dates = [year[i] + dates[i] for i in range(len(dates))]
+            data = pd.DataFrame(price, columns=['low', 'open', 'high', 'close'])
+            data['date'] = dates
+            data['date'] = data['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d'))
+            data['volume'] = volume
+            data = data[['date', 'open', 'low', 'high', 'close', 'volume']]
     except (asyncio.TimeoutError, aiohttp.ClientConnectionError, aiohttp.client_exceptions.ClientProxyConnectionError,
             aiohttp.client_exceptions.ClientHttpProxyError, aiohttp.http_exceptions.TransferEncodingError,
-            aiohttp.client_exceptions.ClientPayloadError):
-        proxy = get_proxy(lock)
+            aiohttp.client_exceptions.ClientPayloadError, JSONDecodeError):
+        proxy = await get_proxy(lock)
         return await ind_index_data(ind_code, session, proxy, lock)
-    data = pd.DataFrame(data)
-    data['date'] = data['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d%H%M%S'))
-    del data['yesterday_close_price']
-    data.rename(columns={'high_price': 'high', 'low_price': 'low', 'open_price': 'open', 'close_price': 'close', 'date': 'time'}, inplace=True)
     ddb_session.run(f"""
         db_path = "dfs://IndKline"
         if (not existsDatabase(db_path)) {{
@@ -179,15 +215,23 @@ async def ind_index_data(ind_code, session, proxy, lock):
 
         if (not existsTable(db_path, 'I{ind_code}')) {{
             stkList = db.createTable(
-                table(1000:0, `time`open`high`low`close, [DATE, DOUBLE, DOUBLE, DOUBLE, DOUBLE]),
+                table(1000:0, `time`open`high`low`close`volume, [DATE, DOUBLE, DOUBLE, DOUBLE, DOUBLE, LONG]),
                 `I{ind_code}
             )
+        }} else {{
+            stkList = loadTable(db_path, 'I{ind_code}')
         }}
     """)
     ddb_session.upload({'tmp_table': data})
-    ddb_session.run("""
-        tableInsert(stkList, tmp_table)
-    """)
+    record_count = ddb_session.run('select count(*) from stkList')
+    if record_count.values[0][0] == 0:
+        ddb_session.run("""
+            tableInsert(stkList, tmp_table)
+        """)
+    else:
+        ddb_session.run("""
+            upsert!(stkList, tmp_table, , `time)
+        """)
     return proxy
 
 
