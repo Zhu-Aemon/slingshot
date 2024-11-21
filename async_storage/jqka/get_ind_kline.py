@@ -1,7 +1,6 @@
 """
 Created on 2024.11.11
-获取同花顺行业（传统行业、概念板块、地域板块）每天的涨跌和各成分股
-改成异步获取并存储到对应的数据库中
+通过异步的方式获取同花顺上行业的K线并且存储到DolphinDB中
 """
 import datetime
 import random
@@ -86,116 +85,6 @@ async def initialize_proxy_pool(lock) -> None:
                     proxy_pool.extend(proxies)
                     print(proxy_pool)
                     print('代理池初始化成功！')
-
-
-async def ind_stock_number(ind_code, date, session, proxy, lock):
-    """
-    获取一个板块对应的股票的数量，方便后面的获取
-    :param ind_code: 板块代码，同花顺定义的
-    :param date: 想获取哪一天的，请传入字符串，例如20240322
-    :param session: aiohttp.Session
-    :param proxy: 格式如xx.xx.xx.xx:xx，字符串
-    :param lock: asyncio.Lock
-    :return: DataFrame，内容是各成分股和涨跌
-    """
-    url = "https://dq.10jqka.com.cn/interval_calculation/stock_info/v1/get_stock_list_by_block"
-    payload = {
-        "block_code": f"{ind_code}",
-        "sort_info": {
-            "sort_field": "0",
-            "sort_type": "desc"
-        },
-        "history_info": {
-            "history_type": "1",
-            "end_date": f"{date}000000",
-            "start_date": f"{date}000000"
-        },
-        "page_info": {
-            "page_size": 20,
-            "page": 1
-        },
-        "block_market": "48"
-    }
-    try:
-        async with session.post(url, headers=headers, proxy=f'http://{proxy}', timeout=10, ssl=False, data=json.dumps(payload)) as response:
-            text = await response.text()
-            total = json.loads(text)['data']['total']
-            return total, proxy
-    except (asyncio.TimeoutError, aiohttp.ClientConnectionError, aiohttp.client_exceptions.ClientProxyConnectionError,
-            aiohttp.client_exceptions.ClientHttpProxyError, aiohttp.http_exceptions.TransferEncodingError, aiohttp.client_exceptions.ClientPayloadError):
-        proxy = get_proxy(lock)
-        return await ind_stock_number(ind_code, date, session, proxy, lock)
-
-
-async def ind_stock_list(ind_code, date, page, session, proxy, lock):
-    """
-    获取一个板块对应的股票列表和涨跌，指定日期
-    :param ind_code: 板块代码，同花顺定义的
-    :param date: 想获取哪一天的，请传入字符串，例如20240322
-    :param page: 需要获取的页码
-    :param session: aiohttp.Session
-    :param proxy: 格式如xx.xx.xx.xx:xx，字符串
-    :param lock: asyncio.Lock
-    :return: DataFrame，内容是各成分股和涨跌
-    """
-    url = "https://dq.10jqka.com.cn/interval_calculation/stock_info/v1/get_stock_list_by_block"
-    payload = {
-        "block_code": f"{ind_code}",
-        "sort_info": {
-            "sort_field": "0",
-            "sort_type": "desc"
-        },
-        "history_info": {
-            "history_type": "1",
-            "end_date": f"{date}000000",
-            "start_date": f"{date}000000"
-        },
-        "page_info": {
-            "page_size": 20,
-            "page": page
-        },
-        "block_market": "48"
-    }
-    try:
-        async with session.post(url, headers=headers, proxy=f'http://{proxy}', timeout=10, ssl=False, data=json.dumps(payload)) as response:
-            text = await response.text()
-            data = json.loads(text)['data']['list']
-            data = pd.DataFrame(data)
-    except (asyncio.TimeoutError, aiohttp.ClientConnectionError, aiohttp.client_exceptions.ClientProxyConnectionError,
-            aiohttp.client_exceptions.ClientHttpProxyError, aiohttp.http_exceptions.TransferEncodingError, aiohttp.client_exceptions.ClientPayloadError):
-        proxy = get_proxy(lock)
-        return await ind_stock_list(ind_code, date, page, session, proxy, lock)
-    data['time'] = datetime.datetime(int(date[:4]), int(date[4:6]), int(date[6:]))
-    data['ind_code'] = ind_code
-    data = pd.DataFrame({
-        'time': data['time'],
-        'ticker': data['stock_code'],
-        'name': data['stock_name'],
-        'stockMarket': data['stock_market'],
-        'indCode': data['ind_code'],
-        'amount': data['turnover'],
-        'pctChange': data['margin_of_increase'],
-        'nfMain': data['net_inflow_of_main_force'],
-        'tovr': data['turnover_rate']
-    })
-    ddb_session.run(f"""
-        db_path = "dfs://IndComponents"
-        if (not existsDatabase(db_path)) {{
-            db = database(db_path, RANGE, 2024.01.01..2024.11.11, true)
-        }} else {{
-            db = database(db_path)
-        }}
-        
-        if (not existsTable(db, '{ind_code}')) {{
-            stkList = db.createTable(
-                table(1000:0, `time`ticker`name`indCode`stockMarket`amount`pctChange`nfMain`tovr, [DATE, SYMBOL, SYMBOL, SYMBOL, SYMBOL, INT, DOUBLE, INT, DOUBLE]),
-                `{ind_code}
-            )
-        }}
-        
-    """)
-    ddb_session.run(f'append!{{loadTable(db_path, `{ind_code})}}', data)
-    return proxy
 
 
 async def fetch_ind_list(date, page, session, proxy, lock):
