@@ -5,7 +5,7 @@ Created by Tianzhu Wang on 20240401
 import requests
 
 
-def trading_days(start_date: str = '20190101'):
+def trading_days(start_date: str = '20190101') -> list[str]:
     """
     获取交易日历
     :param start_date: 从哪一天开始算

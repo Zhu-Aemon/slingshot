@@ -9,9 +9,23 @@ import datetime
 import time
 
 headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
-        "Cookie": "xqat=7fc2327840747ab06b8128801773a1817b427102"
-    }
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36",
+    "Cookie": "xqat=691d6f0a678b98a172affb89759b9c46fd23b4e2; u=171732008163910"
+}
+
+
+# def get_new_cookie():
+#     """
+#     说明：雪球的xqat和u的值为请求的时候必须携带的参数，但是这个参数很容易过期，那这个时候我们可以在每次请求前都获取一个新的cookie
+#     :return: None
+#     """
+#     res = requests.get('https://xueqiu.com/', headers=headers)
+#     xqat = res.cookies.get('xqat')
+#     u = res.cookies.get('u')
+#     headers.update({'Cookie': f"xqat={xqat}; u={u}"})
+#
+#
+# get_new_cookie()
 
 
 def xq_intraday(symbol, period='5d'):
@@ -104,7 +118,7 @@ def xq_snapshot(symbol):
     return data
 
 
-def xq_kline(symbol, period, begin=int(time.time() * 1000), count=200):
+def xq_kline(symbol, period='day', begin=int(time.time() * 1000), count=200):
     """
     获取雪球上的分钟级别k线数据，还没搞明白这个begin究竟该咋设置
     :param symbol: A股带交易所标识符
@@ -118,9 +132,6 @@ def xq_kline(symbol, period, begin=int(time.time() * 1000), count=200):
             symbol = 'SH' + symbol
         else:
             symbol = 'SZ' + symbol
-    params = {
-        "symbol": symbol,
-    }
     url = f'https://stock.xueqiu.com/v5/stock/chart/kline.json'
     params = {
         "symbol": symbol,
