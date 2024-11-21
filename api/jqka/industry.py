@@ -4,6 +4,7 @@ Created on 2024.3.24
 """
 import requests
 import datetime
+import random
 
 import pandas as pd
 
@@ -18,7 +19,7 @@ headers = {
     "Sec-Fetch-Mode": "cors",
     "Content-Type": "application/json",
     "Origin": "https://localhost:8088",
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1 Falcon/0.3.29 userid/712680386",
+    "User-Agent": f"Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1 Falcon/0.3.29 userid/{random.randint(710000000, 712680385)}",
     "Referer": "https://localhost:8088/",
     "Connection": "keep-alive"
 }

@@ -4,3 +4,4 @@
 .idea
 /database/
 /api/tv/*.db
+/.env
