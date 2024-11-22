@@ -120,7 +120,7 @@ def xq_snapshot(symbol):
 
 def xq_kline(symbol, period='day', begin=int(time.time() * 1000), count=200):
     """
-    获取雪球上的分钟级别k线数据，还没搞明白这个begin究竟该咋设置
+    获取雪球上的分钟级别k线数据
     :param symbol: A股带交易所标识符
     :param period: 1m - 分钟, 5m, 15m, 30m, 60m, 120m, year, quarter, month, day
     :param begin: 开始的时间戳，貌似是当前时间戳！
