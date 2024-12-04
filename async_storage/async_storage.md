@@ -14,3 +14,5 @@ PROXY_KEY=your_proxy_key
 请注意本项目默认你在使用代理的时候使用的是[青果云](https://www.qg.net/business/proxyip.html?region=domestic&product_type=1&extract_mode=2)的代理，注意这不是广告，相应的key请自行购买，若使用其他代理提供商的服务，请自行修改对应的代码。在购买了相应的key之后，把上面模板中的`your_proxy_key`改成你自己的key
 
 本项目默认使用[DolphinDB](https://dolphindb.cn/)作为数据库，如果有其他需求，请自行修改代码
+
+PS：关于爬虫代理池这一点还是希望有小伙伴能提个issue告知一下有没有更好的选择，青果云之所以选他是因为便宜。但是在使用过程中发现他家的代理池不够可靠，要么就是给你多计算提取数，要么就是售后服务水平十分不专业。
