@@ -20,3 +20,7 @@ def get_lhb_data(date):
             print(f"{data['result']['count']}，一次请求不够！")
         return pd.DataFrame(data['result']['data'])
     return {}
+
+
+if __name__ == '__main__':
+    print(get_lhb_data('2025-01-02'))
