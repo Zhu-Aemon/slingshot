@@ -44,7 +44,7 @@ def stock_quote(code: list):
     return data
 
 
-def stock_lob(code):
+def stock_lob(code: str):
     """
     获取五档盘口行情
     :param code: 六位股票代码
