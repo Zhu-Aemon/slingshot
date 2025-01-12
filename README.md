@@ -24,8 +24,11 @@
 - `api.jqka.limits.daily_limits_hot`：获取按照板块热度排列的涨停板信息
 - `api.jqka.limits.daily_cont`：获取每日连板的股票
 - `api.jqka.quote.stock_quote`：获取股票实时报价信息
+- `api.jqka.quote.stock_lob`：获取五档盘口报价
 - `api.xq.discussion.xq_discussion`：雪球上关于某只股票最新的讨论
 - `api.xq.kline.xq_intraday`：雪球上获取的某只股票最近的分时数据
 - `api.xq.kline.xq_trades`：雪球上获取的某只股票最近的成交明细
 - `api.xq.kline.xq_snapshot`：雪球上获取的某只股票最近的盘口快照
 - `api.xq.kline.xq_kline`：从雪球上获得的股票k线数据
+
+PS：请各位注意，如果需要高频访问某些接口请自己套代理池访问，不然会被封ip
