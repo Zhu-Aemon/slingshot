@@ -15,3 +15,5 @@ ddb_user = os.getenv('DDB_USER')
 ddb_password = os.getenv('DDB_PASSWORD')
 
 proxy_key = os.getenv('PROXY_KEY')
+proxy_url = os.getenv('PROXY_API_URL')
+proxy_number_param = os.getenv('PROXY_API_NUM_PARAM')

@@ -9,6 +9,8 @@
 目前已经实现的API：
 
 - `api.em.calendar.trading_days`：获取从某一日开始的交易日历
+- `api.em.lhb.get_lhb_data`：获取龙虎榜某一日的详细数据
+- `api.em.quote.market_quote`：获东方财富上的实时市场报价，覆盖全A股
 - `api.jqka.breadth.breadth_live`：获取实时的市场宽度数据
 - `api.jqka.breadth.breadth_intraday`：获取历史某日分时的市场宽度数据
 - `api.jqka.cash_flow.hshkconnect_net_buy`：获取沪深港通的资金流向数据
@@ -19,7 +21,6 @@
 - `api.jqka.industry.get_ind_list`：某一天所有板块的涨跌情况
 - `api.jqka.industry.ind_k_recent`：某个板块同花顺指数的日频数据，最近80条
 - `api.jqka.industry.ind_k_all`：某个板块同花顺指数的全部日频数据
-- `api.jqka.lhb.get_lhb_data`：获取龙虎榜某一日的详细数据
 - `api.jqka.limits.daily_limits`：获取某一日涨停股票的详细信息
 - `api.jqka.limits.daily_limits_hot`：获取按照板块热度排列的涨停板信息
 - `api.jqka.limits.daily_cont`：获取每日连板的股票
