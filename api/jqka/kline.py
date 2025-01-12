@@ -9,14 +9,14 @@ from api.jqka.get_pc_cookie import get_cookie_pc
 from itertools import chain
 
 
-def stock_k_daily(code):
+def stock_k_daily(code, adjust='02'):
     """
     获取一个板块所有的k线
     注意这里用的是同花顺网页版的API，这也就意味着cookie的设置必然和手机版的有所不同
     :param code: 同花顺板块代码
+    :param adjust: 如何复权，01 - 前复权，02 - 后复权，00 - 不复权
     :return: DataFrame
     """
-    # noinspection SpellCheckingInspection
     cookies_pc = {
         'historystock': code,
         'spversion': '20130314',
@@ -36,8 +36,8 @@ def stock_k_daily(code):
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"',
     }
-    response = requests.get(f'https://d.10jqka.com.cn/v6/line/hs_{code}/01/all.js', cookies=cookies_pc, headers=headers_pc)
-    data = response.text.lstrip(f'quotebridge_v6_line_hs_{code}_01_all(').rstrip(')')
+    response = requests.get(f'https://d.10jqka.com.cn/v6/line/hs_{code}/{adjust}/all.js', cookies=cookies_pc, headers=headers_pc)
+    data = response.text.lstrip(f'quotebridge_v6_line_hs_{code}_{adjust}_all(').rstrip(')')
     data = orjson.loads(data)
     del data['afterVolumn']
     price = data['price'].split(',')
