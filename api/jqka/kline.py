@@ -1,11 +1,15 @@
 import requests
 import orjson
 import datetime
+import os
 
 import numpy as np
 import pandas as pd
 
-from api.jqka.get_pc_cookie import get_cookie_pc
+try:
+    from api.jqka.get_pc_cookie import get_cookie_pc
+except ModuleNotFoundError:
+    from slingshot.api.jqka.get_pc_cookie import get_cookie_pc
 from itertools import chain
 
 
