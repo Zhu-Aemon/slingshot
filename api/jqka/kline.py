@@ -2,10 +2,12 @@ import requests
 import orjson
 import datetime
 import os
+import sys
 
 import numpy as np
 import pandas as pd
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from get_pc_cookie import get_cookie_pc
 from itertools import chain
@@ -61,7 +63,10 @@ def stock_k_daily(code, adjust='02'):
 
 def index_k_daily(code, adjust='01'):
     """
-    获取指数k线，1A001 - 上证指数
+    获取指数k线
+    1A0001 - 上证指数
+    1B0300 - 沪深300
+    SPX - 标普500
     注意这里用的是同花顺网页版的API，这也就意味着cookie的设置必然和手机版的有所不同
     :param code: 同花顺板块代码
     :param adjust: 如何复权，01 - 前复权，02 - 后复权，00 - 不复权
@@ -86,8 +91,17 @@ def index_k_daily(code, adjust='01'):
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"',
     }
-    response = requests.get(f'https://d.10jqka.com.cn/v6/line/16_{code}/{adjust}/all.js', cookies=cookies_pc, headers=headers_pc)
-    data = response.text.lstrip(f'quotebridge_v6_line_16_{code}_{adjust}_all(').rstrip(')')
+    match code:
+        case '1A0001' | '1B0300':
+            flag = 16
+        case 'SPX':
+            flag = 88
+        case 'HSI':
+            flag = 176
+        case _:
+            flag = 16
+    response = requests.get(f'https://d.10jqka.com.cn/v6/line/{flag}_{code}/{adjust}/all.js', cookies=cookies_pc, headers=headers_pc)
+    data = response.text.lstrip(f'quotebridge_v6_line_{flag}_{code}_{adjust}_all(').rstrip(')')
     data = orjson.loads(data)
     del data['afterVolumn']
     price = data['price'].split(',')
@@ -108,4 +122,4 @@ def index_k_daily(code, adjust='01'):
 
 
 if __name__ == '__main__':
-    print(index_k_daily('1A0001'))
+    print(index_k_daily('HSI'))
