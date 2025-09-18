@@ -42,13 +42,20 @@ def stock_k_daily(code, adjust='02'):
     }
     response = requests.get(f'https://d.10jqka.com.cn/v6/line/hs_{code}/{adjust}/all.js', cookies=cookies_pc, headers=headers_pc)
     data = response.text.lstrip(f'quotebridge_v6_line_hs_{code}_{adjust}_all(').rstrip(')')
-    data = orjson.loads(data)
+    try:
+        data = orjson.loads(data)
+    except orjson.JSONDecodeError:
+        print(f"Request to {code} data returns a zero length result!")
+        return pd.DataFrame()
     del data['afterVolumn']
     price = data['price'].split(',')
     price = [price[i * 4: (i + 1) * 4] for i in range(len(price) // 4)]
-    price = np.array([[int(x[0]), int(x[0]) + int(x[1]), int(x[0]) + int(x[2]), int(x[0]) + int(x[3])] for x in price]) / data['priceFactor']  # 最低价，开盘价，最高价，收盘价
-    volume = [int(x) for x in data['volumn'].split(',')]
+    price = np.array([[to_int(x[0]), to_int(x[0]) + to_int(x[1]), to_int(x[0]) + to_int(x[2]), to_int(x[0]) + to_int(x[3])] for x in price]) / data['priceFactor']  # 最低价，开盘价，最高价，收盘价
+    volume = [to_int(x) for x in data['volumn'].split(',')]
     year = data['sortYear']
+    if not year:
+        print(f"Request to {code} data returns a zero length result!")
+        return pd.DataFrame()
     year = [[str(x[0])] * x[1] for x in year]
     year = list(chain.from_iterable(year))
     dates = data['dates'].split(',')
@@ -58,7 +65,14 @@ def stock_k_daily(code, adjust='02'):
     data['date'] = data['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y%m%d'))
     data['volume'] = volume
     data = data[['date', 'open', 'low', 'high', 'close', 'volume']]
+    data['ticker'] = code
     return data
+
+
+def to_int(x):
+    if x == '':
+        return 0
+    return int(x)
 
 
 def index_k_daily(code, adjust='01'):
@@ -106,8 +120,8 @@ def index_k_daily(code, adjust='01'):
     del data['afterVolumn']
     price = data['price'].split(',')
     price = [price[i * 4: (i + 1) * 4] for i in range(len(price) // 4)]
-    price = np.array([[int(x[0]), int(x[0]) + int(x[1]), int(x[0]) + int(x[2]), int(x[0]) + int(x[3])] for x in price]) / data['priceFactor']  # 最低价，开盘价，最高价，收盘价
-    volume = [int(x) for x in data['volumn'].split(',')]
+    price = np.array([[to_int(x[0]), to_int(x[0]) + to_int(x[1]), to_int(x[0]) + to_int(x[2]), to_int(x[0]) + to_int(x[3])] for x in price]) / data['priceFactor']  # 最低价，开盘价，最高价，收盘价
+    volume = [to_int(x) for x in data['volumn'].split(',')]
     year = data['sortYear']
     year = [[str(x[0])] * x[1] for x in year]
     year = list(chain.from_iterable(year))
@@ -122,4 +136,4 @@ def index_k_daily(code, adjust='01'):
 
 
 if __name__ == '__main__':
-    print(index_k_daily('HSI'))
+    print(stock_k_daily('600190'))
